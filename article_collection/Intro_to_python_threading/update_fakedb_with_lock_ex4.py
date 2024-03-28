@@ -1,3 +1,4 @@
+# This script will block.
 from constants import Color, ColorOptions
 import concurrent.futures
 import logging
@@ -13,7 +14,11 @@ logging.basicConfig(
 class FakeDatabase:
   def __init__(self):
     self.value = 0
-    self._lock = threading.Lock()
+    self._lock = threading.RLock()
+
+  def locked_sync(self, name):
+    with self._lock:
+      logging.info('Synchronizing the memory into persistent store...')
 
   def update(self, name):
     logging.info(ColorOptions[name] + "Thread %s: starting update" + Color.END, name)
@@ -23,6 +28,7 @@ class FakeDatabase:
       local_copy += 1
       time.sleep(0.1)
       self.value = local_copy
+      self.locked_sync(name)
       logging.debug(ColorOptions[name] + "Thread %s about to release lock" + Color.END, name)
 
     logging.info(Color.BOLD + ColorOptions[name] + "Thread %s: === finishing update ===" + Color.END, name)

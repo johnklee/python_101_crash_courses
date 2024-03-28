@@ -1,3 +1,4 @@
+from constants import Color, ColorOptions
 import concurrent.futures
 import logging
 import time
@@ -13,12 +14,14 @@ class FakeDatabase:
         self.value = 0
 
     def update(self, name):
-        logging.info("Thread %s: starting update", name)
+        logging.info(
+            ColorOptions[name] + "Thread %s: starting update" + Color.END, name)
         local_copy = self.value
         local_copy += 1
         time.sleep(0.1)
         self.value = local_copy
-        logging.info("Thread %s: finishing update", name)
+        logging.info(
+            ColorOptions[name] + "Thread %s: finishing update" + Color.END, name)
 
 
 if __name__ == "__main__":

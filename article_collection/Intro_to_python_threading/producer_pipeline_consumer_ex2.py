@@ -59,4 +59,4 @@ if __name__ == "__main__":
         time.sleep(3)
         logging.info("Main: about to set event")
         event.set()
-        executor.shutdown(wait=True, cancel_futures=True)
+        # executor.shutdown(wait=True, cancel_futures=True)
