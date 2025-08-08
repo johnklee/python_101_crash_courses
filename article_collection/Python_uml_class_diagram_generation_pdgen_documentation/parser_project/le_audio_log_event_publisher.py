@@ -28,13 +28,13 @@ class LogEventPublisher():
 
   def __init__(self):
     """Initial setup test."""
-    self.observers: List[Observer] = []
+    self.observer: Observer | None = None
     self.output = CollectOutputResult()
     self.log = logging.getLogger(__name__)
 
   def register_observer(self, observer: Observer):
     """Saves the registered observer."""
-    self.observers.append(observer)
+    self.observer = observer
 
   @utils.pdb_able
   def start_to_search(self, input_file_path: str,
@@ -81,11 +81,10 @@ class LogEventPublisher():
             if ' D ' in line:
               debug_lin_num += 1
 
-            for observer in self.observers:
-              captured_messages = observer.notify(line)
-              if captured_messages is not None:
-                self.output.collection.extend(captured_messages)
-                break
+            captured_messages = self.observer.notify(line)
+            if captured_messages is not None:
+              self.output.collection.extend(captured_messages)
+              break
       except KeyboardInterrupt as ex:
         self.log.info('Stop monitoring logcat!')
         self.log.info('Output collected logcat message into %s!', output_collected_log_path)
@@ -99,25 +98,23 @@ class LogEventPublisher():
             if ' D ' in line:
               debug_lin_num += 1
 
-            for observer in self.observers:
-              captured_messages = observer.notify(line)
-              if captured_messages is not None:
-                self.output.collection.extend(captured_messages)
-                break
+            captured_messages = self.observer.notify(line)
+            if captured_messages is not None:
+              self.output.collection.extend(captured_messages)
+              break
         except Exception as ex:
           self.log.error('Failed at line=%s (%s): %s', line_num, line, ex)
           raise
 
-    for observer in self.observers:
-      output_collection_file_path = (
-            _COLLECTION_OUTPUT_FILE_PATH.format(
-                observer_name=observer.__class__.__name__))
-      self.log.info(
-          'Output collection of captured message to %s...',
-          output_collection_file_path)
-      with open(output_collection_file_path, 'w') as fw:
-        for raw_data in observer.global_raw_data:
-          fw.write(f'{raw_data}\n')
+    output_collection_file_path = (
+        _COLLECTION_OUTPUT_FILE_PATH.format(
+            self.observer_name=observer.__class__.__name__))
+    self.log.info(
+        'Output collection of captured message to %s...',
+        output_collection_file_path)
+    with open(output_collection_file_path, 'w') as fw:
+      for raw_data in observer.global_raw_data:
+        fw.write(f'{raw_data}\n')
 
     # TODO: The original design doesn't take multiple observers situation
     #   into consideration and use the last observer from for loop which
